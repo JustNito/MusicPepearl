@@ -9,6 +9,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "discord.js": "^11.5.1"
+    "discord.js": "^11.5.1",
+    "ffmpeg": "0.0.4",
+    "ffmpeg-binaries": "^3.2.2-3",
+    "ffmpeg-static": "^4.2.5",
+    "ytdl-core-discord": "^1.2.1"
   }
 }

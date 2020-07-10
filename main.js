@@ -9,6 +9,16 @@ const config = require(`./config.json`);
 bot.on('message', async message =>{
     let prefix = config.prefix;
 
+    if (message.content == (prefix+"join")) {
+      // Only try to join the sender's voice channel if they are in one themselves
+      if (message.member.voiceChannel) {
+        const connection = await message.member.voiceChannel.join();
+        //console.log(message.member.voice.channel);
+      } else {
+        message.reply('You need to join a voice channel first!');
+      }
+    }
+
     if(message.content.startsWith(prefix+"say")){
       message.delete();
       message.channel.send(message.content.substr(5,));
