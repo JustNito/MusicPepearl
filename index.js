@@ -14,10 +14,9 @@ bot.on('message', async message => {
     if (message.content == (prefix + "join")) {
         if (message.member.voice.channel) {
             const connection = await message.member.voice.channel.join();
-            /*const broadcast = bot.voice.createBroadcast();
+            const broadcast = bot.voice.createBroadcast();
             broadcast.play('Surprise - MazaFAKA.mp3');
-            connection.play(broadcast);*/
-            connection.play(ytdl('https://www.youtube.com/watch?v=ZlAU_w7-Xp8', { quality: 'highestaudio' }));
+            connection.play(broadcast);
         } else {
             message.reply('You need to join a voice channel first!');
         }
