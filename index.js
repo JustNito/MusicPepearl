@@ -14,9 +14,16 @@ bot.on('message', async message => {
     if (message.content == (prefix + "join")) {
         if (message.member.voice.channel) {
             const connection = await message.member.voice.channel.join();
-            const broadcast = bot.voice.createBroadcast();
-            broadcast.play('Surprise - MazaFAKA.mp3');
-            connection.play(broadcast);
+        } else {
+            message.reply('You need to join a voice channel first!');
+        }
+    }
+
+    if (message.content.startsWith(prefix + "play")) {
+        if (message.member.voice.channel) {
+            const connection = await message.member.voice.channel.join();
+            const ytdl = require('ytdl-core');
+            connection.play(ytdl(message.content.substr(6,), { filter: 'audioonly' }));
         } else {
             message.reply('You need to join a voice channel first!');
         }
