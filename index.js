@@ -1,27 +1,47 @@
 const Discord = require('discord.js');
-const bot = new Discord.Client();
-const config = require(`./config.json`);
+const {
+    prefix,
+    token,
+    access_token,
+} = require('./config.json');
+const ytdl = require('ytdl-core');
+var https = require('https');
+
+const client = new Discord.Client();
+
+client.on('ready', () => {
+    console.log(client.user.username + ' online');
+    client.user.setPresence({ status: 'online', game: { name: 'с твоей мамашей', type: 0 } });
+});
 
 //function emoji (id) {
 //   return client.emojis.get(id).toString();
 //}
 
-bot.on('message', async message => {
-    let prefix = config.prefix;
+client.on('message', async message => {
 
-    if (!message.guild) return;
+    if (message.author.bot) return;
 
-    if (message.content == (prefix + "join")) {
+    if (message.content == "rainbow" && message.author.id == '249514842703003648') {
+        message.delete();
+        message.channel.send('<a:Rainbow:552553091686334498>');
+        return;
+    }
+
+    if (!message.content.startsWith(prefix)) return;
+
+    if (message.content.startsWith(prefix + "join")) {
         if (message.member.voice.channel) {
             const connection = await message.member.voice.channel.join();
         } else {
             message.reply('You need to join a voice channel first!');
         }
+        return
     }
-
-    if (message.content.startsWith(prefix + "play")) {
+    else if (message.content.startsWith(prefix + "play")) {
         if (message.member.voice.channel) {
-            /*const connection = await message.member.voice.channel.join();
+            /*
+            const connection = await message.member.voice.channel.join();
             const ytdl = require('ytdl-core');
             connection.play(ytdl(message.content.substr(6,), { filter: 'audioonly' }));
 
@@ -31,55 +51,79 @@ bot.on('message', async message => {
             */
             const connection = await message.member.voice.channel.join();
             const ytdl = require('ytdl-core');
-            const broadcast = bot.voice.createBroadcast();
+            const broadcast = client.voice.createBroadcast();
             broadcast.play(ytdl(message.content.substr(6,), { filter: 'audioonly' }));
             connection.play(broadcast);
         } else {
             message.reply('You need to join a voice channel first!');
         }
+        return
     }
+    else if (message.content.startsWith(prefix + "vk")) {
 
-    if (message.content.startsWith(prefix + "skip")) {
+        const options = new URL('https://api.vk.com/method/users.get?user_ids=aff3ct&fields=status&access_token=' + access_token + '&v=5.120');
+
+        const req = https.request(options, (res) => {
+            res.setEncoding('utf8');
+            res.on('data', (chunk) => {
+                //console.log(chunk);
+                let obj = JSON.parse(chunk);
+                if (obj.error != undefined) {
+                    console.log(obj.error);
+                    return;
+                }
+                console.log(obj["response"][0].status_audio);
+                if (obj["response"][0].status != undefined)
+                    message.channel.send(obj["response"][0].status);
+                if (obj["response"][0].status_audio != undefined)
+                    message.channel.send(obj["response"][0].status_audio.title);
+            });
+            res.on('end', () => {
+                console.log('No more data in response.');
+            });
+        });
+
+        req.on('error', (e) => {
+            console.error(`problem with request: ${e.message}`);
+        });
+
+        req.end();
+
+        return;
+    }
+    else if (message.content.startsWith(prefix + "skip")) {
         if (message.member.voice.channel) {
             const connection = await message.member.voice.channel.join();
-            const broadcast = bot.voice.createBroadcast();
+            const broadcast = client.voice.createBroadcast();
             broadcast.end()
             connection.play(broadcast);
         } else {
             message.reply('You need to join a voice channel first!');
         }
+        return;
     }
-
-    if (message.content == (prefix + "leave")) {
+    else if (message.content.startsWith(prefix + "leave")) {
         if (message.member.voice.channel) {
             const connection = await message.member.voice.channel.leave();
         } else {
             message.reply('You need to join a voice channel first!');
         }
+        return;
     }
-
-    if (message.content.startsWith(prefix + "say")) {
+    else if (message.content.startsWith(prefix + "info")) {
+        return;
+    }
+    else if (message.content.startsWith(prefix + "say")) {
         message.delete();
         message.channel.send(message.content.substr(5,));
         return;
     }
-
-    if (message.content == (prefix + "gif")) {
+    else if (message.content.startsWith(prefix + "gif")) {
         number = 4;
         gifNumber = Math.floor(Math.random() * (number - 1 + 1)) + 1;
         message.channel.send({ files: ["./gif/" + gifNumber + ".gif"] })
         return;
     }
-
-    if (message.content == "rainbow" && message.author.id == '249514842703003648') {
-        message.delete();
-        message.channel.send('<a:Rainbow:552553091686334498>');
-        return;
-    }
 });
 
-bot.login(config.token);
-bot.on('ready', () => {
-    console.log(bot.user.username + ' online');
-    bot.user.setPresence({ status: 'online', game: { name: 'с твоей мамашей', type: 0 } });
-});
+client.login(token);
