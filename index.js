@@ -6,6 +6,7 @@ const {
 } = require('./config.json');
 const ytdl = require('ytdl-core');
 var https = require('https');
+const ffmpeg = require('ffmpeg');
 
 const client = new Discord.Client();
 
@@ -50,7 +51,6 @@ client.on('message', async message => {
             connection.play(broadcast);
             */
             const connection = await message.member.voice.channel.join();
-            const ytdl = require('ytdl-core');
             const broadcast = client.voice.createBroadcast();
             broadcast.play(ytdl(message.content.substr(6,), { filter: 'audioonly' }));
             connection.play(broadcast);
@@ -73,30 +73,44 @@ client.on('message', async message => {
                     return;
                 }
                 console.log(obj["response"][0].status_audio);
-                if (obj["response"][0].status != undefined)
-                    message.channel.send(obj["response"][0].status);
-                if (obj["response"][0].status_audio != undefined)
-                {
+                if (obj["response"][0].status_audio != undefined) {
                     const ytsr = require('ytsr');
-                    let filter;    
-                    ytsr.getFilters(obj["response"][0].status_audio.title, function(err, filters) {
-                      if(err) throw err;
-                      filter = filters.get('Type').find(o => o.name === 'Video');
-                      ytsr.getFilters(filter.ref, function(err, filters) {
-                        if(err) throw err;
-                        var options = {
-                          limit: 1,
-                          nextpageRef: filter.ref,
+                    let filter;
+                    let music = obj["response"][0].status_audio.artist + " - " + obj["response"][0].status_audio.title
+                    message.channel.send(music);
+                    ytsr.getFilters(music, function (err, filters) {
+                        if (err) {
+                            console.log("htp1");
+                            throw err;
                         }
-                        ytsr(null, options, function(err, searchResults) {
-                          if(err) throw err;
-                            const connection = await message.member.voice.channel.join();                       
-                            const broadcast = client.voice.createBroadcast();
-                            broadcast.play(ytdl(searchResults.items[0].link, { filter: 'audioonly' }));
-                            connection.play(broadcast);
+                        filter = filters.get('Type').find(o => o.name === 'Video');
+                        ytsr.getFilters(filter.ref, function (err, filters) {
+                            if (err) {
+                                console.log("htp2");
+                                throw err;
+                            }
+                            var options = {
+                                limit: 1,
+                                nextpageRef: filter.ref,
+                            }
+                            ytsr(null, options, function (err, searchResults) {
+                                if (err) {
+                                    console.log("htp3");
+                                    throw err;
+                                }
+                                //const connection = await message.member.voice.channel.join();
+                                //const broadcast = client.voice.createBroadcast();
+                                //broadcast.play(ytdl(searchResults.items[0].link, { filter: 'audioonly' }));
+                                //connection.play(broadcast);
+                                console.log("результат мазафака");
+                                console.log(searchResults.items[0].link);
+                                vkplay(message, searchResults.items[0].link);
+                            });
                         });
-                      });
                     });
+                }
+                else {
+                    message.channel.send("Добавьте музыку в статус");
                 }
             });
             res.on('end', () => {
@@ -112,7 +126,7 @@ client.on('message', async message => {
 
         return;
     }
-   
+
     else if (message.content.startsWith(prefix + "skip")) {
         if (message.member.voice.channel) {
             const connection = await message.member.voice.channel.join();
@@ -147,5 +161,13 @@ client.on('message', async message => {
         return;
     }
 });
+
+async function vkplay(message, result) {
+    const connection = await message.member.voice.channel.join();
+    const broadcast = client.voice.createBroadcast();
+    broadcast.play(ytdl(result, { filter: 'audioonly' }));
+    connection.play(broadcast);
+    return;
+}
 
 client.login(token);
