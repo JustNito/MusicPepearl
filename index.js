@@ -76,7 +76,25 @@ client.on('message', async message => {
                 if (obj["response"][0].status != undefined)
                     message.channel.send(obj["response"][0].status);
                 if (obj["response"][0].status_audio != undefined)
-                    message.channel.send(obj["response"][0].status_audio.title);
+                {
+                    const ytsr = require('ytsr');
+                    let filter;    
+                    ytsr.getFilters(obj["response"][0].status_audio.title, function(err, filters) {
+                      if(err) throw err;
+                      filter = filters.get('Type').find(o => o.name === 'Video');
+                      ytsr.getFilters(filter.ref, function(err, filters) {
+                        if(err) throw err;
+                        var options = {
+                          limit: 1,
+                          nextpageRef: filter.ref,
+                        }
+                        ytsr(null, options, function(err, searchResults) {
+                          if(err) throw err;
+                          console.log(searchResults.items[0].link);
+                        });
+                      });
+                    });
+                }
             });
             res.on('end', () => {
                 console.log('No more data in response.');
@@ -91,25 +109,7 @@ client.on('message', async message => {
 
         return;
     }
-    else if(message.content.startsWith(prefix + "test")){ // код для поиска песни по строке
-    const ytsr = require('ytsr');
-    let filter;    
-    ytsr.getFilters('kavinsky - night call', function(err, filters) {
-      if(err) throw err;
-      filter = filters.get('Type').find(o => o.name === 'Video');
-      ytsr.getFilters(filter.ref, function(err, filters) {
-        if(err) throw err;
-        var options = {
-          limit: 1,
-          nextpageRef: filter.ref,
-        }
-        ytsr(null, options, function(err, searchResults) {
-          if(err) throw err;
-          console.log(searchResults.items[0].link);
-        });
-      });
-    });
-    }
+   
     else if (message.content.startsWith(prefix + "skip")) {
         if (message.member.voice.channel) {
             const connection = await message.member.voice.channel.join();
