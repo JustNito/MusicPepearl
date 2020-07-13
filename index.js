@@ -90,7 +90,10 @@ client.on('message', async message => {
                         }
                         ytsr(null, options, function(err, searchResults) {
                           if(err) throw err;
-                          console.log(searchResults.items[0].link);
+                            const connection = await message.member.voice.channel.join();                       
+                            const broadcast = client.voice.createBroadcast();
+                            broadcast.play(ytdl(searchResults.items[0].link, { filter: 'audioonly' }));
+                            connection.play(broadcast);
                         });
                       });
                     });
